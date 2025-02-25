@@ -81,11 +81,11 @@ export function DataTable() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto ">
+    <div className="w-full h-screen mx-auto">
       <div
         {...getRootProps()}
         className={`
-          rounded-md border relative
+          rounded-md border relative h-[80%]
           ${isDragActive ? "ring-2 ring-primary" : ""}
         `}
       >
@@ -110,18 +110,18 @@ export function DataTable() {
           </div>
         )}
 
-        <Table>
+        <Table className="h-full">
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="h-full">
             {files.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <TableRow className="h-full flex-1">
+                <TableCell colSpan={5} className="h-full text-center">
+                  <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-full min-h-[400px]">
                     <FileIcon className="w-8 h-8" />
                     <p>Drop files here to upload</p>
                     <p className="text-sm">Supported files: Markdown, HTML</p>
