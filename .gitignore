@@ -1,0 +1,13 @@
+
+ode_modules 
+*.log 
+idea/ 
+*.local 
+.DS_Store 
+dist 
+.cache 
+.idea 
+logs 
+&-debug.log 
+*-error.log 
+*__pycache__/
