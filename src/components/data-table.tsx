@@ -1,9 +1,8 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { FileIcon, Loader2, Trash2 } from "lucide-react";
+import { FileIcon, Loader2, Trash2, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -19,25 +18,22 @@ interface FileData {
   name: string;
   size: number;
   type: string;
-  lastModified: number;
 }
 
 // Sample initial data
 const initialFiles: FileData[] = [
-  {
-    id: "1",
-    name: "document.pdf",
-    size: 1024576,
-    type: "application/pdf",
-    lastModified: Date.now() - 86400000,
-  },
-  {
-    id: "2",
-    name: "spreadsheet.xlsx",
-    size: 2048576,
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    lastModified: Date.now() - 172800000,
-  },
+  // {
+  //   id: "1",
+  //   name: "document.pdf",
+  //   size: 1024576,
+  //   type: "application/pdf",
+  // },
+  // {
+  //   id: "2",
+  //   name: "spreadsheet.md",
+  //   size: 2048576,
+  //   type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  // },
 ];
 
 export function DataTable() {
@@ -54,7 +50,6 @@ export function DataTable() {
         name: file.name,
         size: file.size,
         type: file.type,
-        lastModified: file.lastModified,
       }));
 
       setFiles((prev) => [...prev, ...newFiles]);
@@ -73,13 +68,9 @@ export function DataTable() {
       "application/msword": [".doc"],
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         [".docx"],
-      "application/vnd.ms-excel": [".xls"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-        ".xlsx",
-      ],
-      "text/csv": [".csv"],
+      "text/html": [".html", ".htm"],
     },
-    noClick: true, // Prevents click to open file dialog
+    noClick: true,
   });
 
   const removeFile = (id: string) => {
@@ -89,26 +80,8 @@ export function DataTable() {
     });
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return (
-      Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-    );
-  };
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
-    <div className="w-full max-w-6xl mx-auto p-4">
+    <div className="w-full max-w-6xl mx-auto ">
       <div
         {...getRootProps()}
         className={`
@@ -141,9 +114,6 @@ export function DataTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>Modified</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -154,9 +124,7 @@ export function DataTable() {
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <FileIcon className="w-8 h-8" />
                     <p>Drop files here to upload</p>
-                    <p className="text-sm">
-                      Supported files: PDF, DOC, DOCX, XLS, XLSX, CSV
-                    </p>
+                    <p className="text-sm">Supported files: Markdown, HTML</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -169,9 +137,6 @@ export function DataTable() {
                       {file.name}
                     </div>
                   </TableCell>
-                  <TableCell>{file.type.split("/")[1].toUpperCase()}</TableCell>
-                  <TableCell>{formatFileSize(file.size)}</TableCell>
-                  <TableCell>{formatDate(file.lastModified)}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
@@ -188,6 +153,12 @@ export function DataTable() {
             )}
           </TableBody>
         </Table>
+      </div>
+      <div className="w-full flex justify-end items-center mt-4 gap-2">
+        <Button>Generate EPUB</Button>
+        <Button variant="secondary">
+          <SlidersHorizontal />
+        </Button>
       </div>
     </div>
   );
