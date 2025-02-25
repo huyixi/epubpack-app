@@ -1,15 +1,9 @@
-import { Button } from "@/components/ui/button";
-import "./App.css";
+import { DataTable } from "@/components/data-table";
 
-function App() {
+export default function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold underline text-blue-500">
-        Hello world!
-      </h1>
-      <Button>Button</Button>
-    </>
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <DataTable />
+    </main>
   );
 }
-
-export default App;
