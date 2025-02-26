@@ -1,13 +1,14 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { FileIcon, Loader2, Trash2 } from "lucide-react";
+import { FileIcon, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -21,20 +22,7 @@ interface FileData {
   type: string;
 }
 
-const initialFiles: FileData[] = [
-  // {
-  //   id: "1",
-  //   name: "document.pdf",
-  //   size: 1024576,
-  //   type: "application/pdf",
-  // },
-  // {
-  //   id: "2",
-  //   name: "spreadsheet.md",
-  //   size: 2048576,
-  //   type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  // },
-];
+const initialFiles: FileData[] = [];
 
 export function DataTable() {
   const [files, setFiles] = useState<FileData[]>(initialFiles);
@@ -43,7 +31,6 @@ export function DataTable() {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setIsUploading(true);
 
-    // Simulate upload delay - replace with your actual upload logic
     setTimeout(() => {
       const newFiles = acceptedFiles.map((file) => ({
         id: Math.random().toString(36).substring(7),
@@ -85,7 +72,7 @@ export function DataTable() {
       <div
         {...getRootProps()}
         className={`
-          rounded-md border relative h-[80%]
+          rounded-md border relative
           ${isDragActive ? "ring-2 ring-primary" : ""}
         `}
       >
@@ -121,9 +108,26 @@ export function DataTable() {
             {files.length === 0 ? (
               <TableRow className="h-full flex-1">
                 <TableCell colSpan={5} className="h-full text-center">
-                  <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-full min-h-[400px]">
+                  <div
+                    className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-full min-h-[400px] cursor-pointer hover:bg-gray-50 transition-colors "
+                    onClick={() => {
+                      // Create an input element
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = ".md,.markdown,.html,.htm";
+                      input.multiple = true;
+
+                      input.onchange = (e) => {
+                        const files = Array.from(
+                          (e.target as HTMLInputElement).files || [],
+                        );
+                      };
+
+                      input.click();
+                    }}
+                  >
                     <FileIcon className="w-8 h-8" />
-                    <p>Drop files here to upload</p>
+                    <p>Drop files here or click to upload</p>
                     <p className="text-sm">Supported files: Markdown, HTML</p>
                   </div>
                 </TableCell>
@@ -144,7 +148,7 @@ export function DataTable() {
                       onClick={() => removeFile(file.id)}
                       className="hover:text-destructive"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                       <span className="sr-only">Delete file</span>
                     </Button>
                   </TableCell>
@@ -152,11 +156,22 @@ export function DataTable() {
               ))
             )}
           </TableBody>
+          {files.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <div className="flex items-center gap-4 bg-transparent cursor-pointer">
+                    <Plus className="h-4 w-4" />
+                    <p>Add File</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
       <div className="w-full flex justify-end items-center mt-4 gap-2">
         <Button>Generate EPUB</Button>
-
         <ConfigDialog />
       </div>
     </div>
