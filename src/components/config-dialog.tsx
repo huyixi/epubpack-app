@@ -2,14 +2,7 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -31,24 +24,14 @@ export function ConfigDialog() {
           <Settings2 />
         </Button>
       </DialogTrigger>
-      <DialogContent className="p-0 gap-0 max-w-5xl">
-        <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>
-            Make changes to your profile here. Click save when you're done.
-          </DialogDescription>
-        </DialogHeader>
-        <Tabs
-          defaultValue="metadata"
-          className="flex h-[600px]"
-          orientation="vertical"
-        >
-          <TabsList className="flex h-full w-60 flex-col justify-start items-stretch gap-1 rounded-none bg-muted/50 p-2">
+      <DialogContent className="p-4 gap-0">
+        <Tabs defaultValue="metadata" className="flex flex-row ">
+          <TabsList className="bg-gray-100 flex h-full w-60 flex-col justify-start items-stretch gap-1 rounded-sm p-2 border-r">
             <div className="p-4 mb-2">
               <h2 className="text-lg font-semibold">Config</h2>
               <p className="text-sm text-muted-foreground">
                 Customize your export configuration, or use the default export
-                settings directly
+                settings directly.
               </p>
             </div>
             <TabsTrigger
@@ -85,7 +68,10 @@ export function ConfigDialog() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="metadata" className="flex-1 p-6 m-0 border-l">
+          <TabsContent
+            value="metadata"
+            className="flex-1 p-6 m-0 bg-white rounded-sm"
+          >
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-4">Metadata</h3>
@@ -103,7 +89,10 @@ export function ConfigDialog() {
             </div>
           </TabsContent>
 
-          <TabsContent value="image" className="flex-1 p-6 m-0 border-l">
+          <TabsContent
+            value="image"
+            className="flex-1 p-6 m-0 bg-white rounded-sm"
+          >
             <h3 className="text-lg font-semibold mb-4">Image Settings</h3>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -129,7 +118,10 @@ export function ConfigDialog() {
             </div>
           </TabsContent>
 
-          <TabsContent value="content" className="flex-1 p-6 m-0 border-l">
+          <TabsContent
+            value="content"
+            className="flex-1 p-6 m-0 bg-white rounded-sm"
+          >
             <h3 className="text-lg font-semibold mb-4">Content Settings</h3>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -162,7 +154,10 @@ export function ConfigDialog() {
             </div>
           </TabsContent>
 
-          <TabsContent value="size" className="flex-1 p-6 m-0 border-l">
+          <TabsContent
+            value="size"
+            className="flex-1 p-6 m-0 bg-white rounded-sm"
+          >
             <h3 className="text-lg font-semibold mb-4">File Size Options</h3>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -195,7 +190,10 @@ export function ConfigDialog() {
             </div>
           </TabsContent>
 
-          <TabsContent value="settings" className="flex-1 p-6 m-0 border-l">
+          <TabsContent
+            value="settings"
+            className="flex-1 p-6 m-0 bg-white rounded-sm"
+          >
             <h3 className="text-lg font-semibold mb-4">Advanced Settings</h3>
             <div className="space-y-4">
               <div className="space-y-2">
