@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { FileIcon, Loader2, Trash2, SlidersHorizontal } from "lucide-react";
+import { FileIcon, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ConfigDialog } from "@/components/config-dialog";
 
 interface FileData {
   id: string;
@@ -20,7 +21,6 @@ interface FileData {
   type: string;
 }
 
-// Sample initial data
 const initialFiles: FileData[] = [
   // {
   //   id: "1",
@@ -156,9 +156,8 @@ export function DataTable() {
       </div>
       <div className="w-full flex justify-end items-center mt-4 gap-2">
         <Button>Generate EPUB</Button>
-        <Button variant="secondary">
-          <SlidersHorizontal />
-        </Button>
+
+        <ConfigDialog />
       </div>
     </div>
   );
