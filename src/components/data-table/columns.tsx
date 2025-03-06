@@ -43,7 +43,7 @@ function StatusBadge({ status }: { status: File["status"] }) {
   return <>{icon}</>;
 }
 
-export const columns: ColumnDef<File>[] = [
+export const columns = (onDelete: (id: string) => void): ColumnDef<File>[] => [
   {
     id: "drag-handle",
     cell: () => <DragHandleCell />,
@@ -71,9 +71,15 @@ export const columns: ColumnDef<File>[] = [
   },
   {
     id: "actions",
-    cell: () => {
+    cell: ({ row }) => {
+      const file = row.original;
       return (
-        <Button variant="ghost" size="icon" className="hover:text-destructive">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hover:text-destructive"
+          onClick={() => onDelete(file.id)}
+        >
           <X className="w-4 h-4" />
           <span className="sr-only">Delete file</span>
         </Button>

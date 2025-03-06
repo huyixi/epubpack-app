@@ -10,11 +10,15 @@ const App = () => {
     setTableData(newData);
   };
 
+  const handleDelete = (id: string) => {
+    setTableData((currentData) => currentData.filter((file) => file.id !== id));
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <p className="w-full mb-4">Convert your files to EPUB format</p>
       <DraggableDataTable
-        columns={columns}
+        columns={columns(handleDelete)}
         data={tableData}
         onReorder={handleReorder}
       />
