@@ -73,8 +73,9 @@ export const columns: ColumnDef<File>[] = [
     id: "actions",
     cell: () => {
       return (
-        <Button variant="ghost">
-          <X />
+        <Button variant="ghost" size="icon" className="hover:text-destructive">
+          <X className="w-4 h-4" />
+          <span className="sr-only">Delete file</span>
         </Button>
       );
     },
