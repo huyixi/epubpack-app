@@ -57,15 +57,11 @@ const initialFiles: FileData[] = [];
 interface DraggableDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onReorder?: (newData: TData[]) => void;
 }
 
 // Draggable row component
-function DraggableTableRow<TData>({
-  row,
-}: {
-  row: Row<TData>;
-  reorderRow: (draggedRowId: string, targetRowId: string) => void;
-}) {
+function DraggableTableRow<TData>({ row }: { row: Row<TData> }) {
   const {
     attributes,
     listeners,
@@ -86,11 +82,11 @@ function DraggableTableRow<TData>({
   } as React.CSSProperties;
 
   return (
-    <TableRow
+    <tr
       ref={setNodeRef}
       style={style}
       data-state={row.getIsSelected() && "selected"}
-      className={isDragging ? "bg-muted" : ""}
+      className={`${isDragging ? "bg-muted" : ""} border-b transition-colors hover:bg-muted/50`}
       {...attributes}
     >
       {row.getVisibleCells().map((cell) => (
@@ -104,13 +100,14 @@ function DraggableTableRow<TData>({
           )}
         </TableCell>
       ))}
-    </TableRow>
+    </tr>
   );
 }
 
 export function DraggableDataTable<TData, TValue>({
   columns,
   data: initialData,
+  onReorder,
 }: DraggableDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [data, setData] = useState<TData[]>(initialData);
@@ -140,10 +137,12 @@ export function DraggableDataTable<TData, TValue>({
     const { active } = event;
     setActiveId(active.id as string);
 
-    // Find the active row
-    const rowIndex = data.findIndex((item: any) => item.id === active.id);
-    if (rowIndex !== -1) {
-      const row = table.getRowModel().rows[rowIndex];
+    // Find the active row by ID directly from table rows
+    const row = table
+      .getRowModel()
+      .rows.find((r) => (r.original as any).id === active.id);
+
+    if (row) {
       setActiveRow(row);
     }
   };
@@ -153,27 +152,26 @@ export function DraggableDataTable<TData, TValue>({
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setData((items) => {
-        // Find the indices of the items
-        const oldIndex = items.findIndex((item: any) => item.id === active.id);
-        const newIndex = items.findIndex((item: any) => item.id === over.id);
+      const newData = [...data];
 
-        // Return the reordered array
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      // Find the indices of the items
+      const oldIndex = newData.findIndex((item: any) => item.id === active.id);
+      const newIndex = newData.findIndex((item: any) => item.id === over.id);
+
+      // Reorder the array
+      const reorderedData = arrayMove(newData, oldIndex, newIndex);
+
+      // Update internal state
+      setData(reorderedData);
+
+      // Notify parent component about the change if callback exists
+      if (onReorder) {
+        onReorder(reorderedData);
+      }
     }
 
     setActiveId(null);
     setActiveRow(null);
-  };
-
-  // Function to reorder rows (used by DraggableTableRow)
-  const reorderRow = (draggedRowId: string, targetRowId: string) => {
-    setData((items) => {
-      const oldIndex = items.findIndex((item: any) => item.id === draggedRowId);
-      const newIndex = items.findIndex((item: any) => item.id === targetRowId);
-      return arrayMove(items, oldIndex, newIndex);
-    });
   };
 
   // Initialize table
@@ -230,11 +228,7 @@ export function DraggableDataTable<TData, TValue>({
                   table
                     .getRowModel()
                     .rows.map((row) => (
-                      <DraggableTableRow
-                        key={row.id}
-                        row={row}
-                        reorderRow={reorderRow}
-                      />
+                      <DraggableTableRow key={row.id} row={row} />
                     ))
                 ) : (
                   <TableRow>
@@ -278,36 +272,75 @@ export function DraggableDataTable<TData, TValue>({
 export function DataTable() {
   const [files, setFiles] = useState<FileData[]>(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  // Supported file types for EPUB generation
+  const acceptedFileTypes = {
+    "text/markdown": [".md", ".markdown"],
+    "text/html": [".html", ".htm"],
+    "application/pdf": [".pdf"],
+    "application/msword": [".doc"],
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+      ".docx",
+    ],
+  };
+
+  const handleFileUpload = (newFiles: File[]) => {
     setIsUploading(true);
 
-    setTimeout(() => {
-      const newFiles = acceptedFiles.map((file) => ({
-        id: Math.random().toString(36).substring(7),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      }));
-
-      setFiles((prev) => [...prev, ...newFiles]);
-      setIsUploading(false);
-
-      toast.success("Files uploaded successfully", {
-        description: `${acceptedFiles.length} file(s) have been uploaded.`,
+    try {
+      // Validate file types
+      const invalidFiles = newFiles.filter((file) => {
+        const fileExtension = `.${file.name.split(".").pop()?.toLowerCase()}`;
+        return !Object.values(acceptedFileTypes).flat().includes(fileExtension);
       });
-    }, 1500);
+
+      if (invalidFiles.length > 0) {
+        toast.error("Invalid file types", {
+          description: `${invalidFiles.map((f) => f.name).join(", ")} are not supported.`,
+        });
+      }
+
+      // Process valid files
+      const validFiles = newFiles.filter((file) => {
+        const fileExtension = `.${file.name.split(".").pop()?.toLowerCase()}`;
+        return Object.values(acceptedFileTypes).flat().includes(fileExtension);
+      });
+
+      // Simulate processing time
+      setTimeout(() => {
+        const newFileEntries = validFiles.map((file) => ({
+          id: Math.random().toString(36).substring(7),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        }));
+
+        setFiles((prev) => [...prev, ...newFileEntries]);
+        setIsUploading(false);
+
+        if (validFiles.length > 0) {
+          toast.success("Files uploaded successfully", {
+            description: `${validFiles.length} file(s) have been uploaded.`,
+          });
+        }
+      }, 1500);
+    } catch (error) {
+      console.error("Error processing files:", error);
+      toast.error("Upload failed", {
+        description: "There was an error processing your files.",
+      });
+      setIsUploading(false);
+    }
+  };
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    handleFileUpload(acceptedFiles);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      "application/pdf": [".pdf"],
-      "application/msword": [".doc"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        [".docx"],
-      "text/html": [".html", ".htm"],
-    },
+    accept: acceptedFileTypes,
     noClick: true,
   });
 
@@ -316,6 +349,50 @@ export function DataTable() {
     toast.success("File removed", {
       description: "The file has been removed from the list.",
     });
+  };
+
+  const handleAddFileClick = () => {
+    // Create a file input element
+    const input = document.createElement("input");
+    input.type = "file";
+    input.multiple = true;
+
+    // Set accepted file types
+    const acceptValues = Object.values(acceptedFileTypes).flat().join(",");
+    input.accept = acceptValues;
+
+    // Handle file selection
+    input.onchange = (e) => {
+      const selectedFiles = Array.from(
+        (e.target as HTMLInputElement).files || [],
+      );
+      if (selectedFiles.length > 0) {
+        handleFileUpload(selectedFiles);
+      }
+    };
+
+    // Trigger the file selection dialog
+    input.click();
+  };
+
+  const handleGenerateEpub = () => {
+    if (files.length === 0) {
+      toast.error("No files to process", {
+        description: "Please add at least one file to generate an EPUB.",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+
+    // Simulate EPUB generation process
+    setTimeout(() => {
+      setIsGenerating(false);
+      toast.success("EPUB generated successfully", {
+        description: "Your EPUB file is ready for download.",
+      });
+      // Here you would typically trigger a download or show a download link
+    }, 2000);
   };
 
   return (
@@ -361,25 +438,13 @@ export function DataTable() {
                 <TableCell colSpan={5} className="h-full text-center">
                   <div
                     className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-full min-h-[400px] cursor-pointer hover:bg-gray-50 transition-colors "
-                    onClick={() => {
-                      // Create an input element
-                      const input = document.createElement("input");
-                      input.type = "file";
-                      input.accept = ".md,.markdown,.html,.htm";
-                      input.multiple = true;
-
-                      input.onchange = (e) => {
-                        const files = Array.from(
-                          (e.target as HTMLInputElement).files || [],
-                        );
-                      };
-
-                      input.click();
-                    }}
+                    onClick={handleAddFileClick}
                   >
                     <FileIcon className="w-8 h-8" />
                     <p>Drop files here or click to upload</p>
-                    <p className="text-sm">Supported files: Markdown, HTML</p>
+                    <p className="text-sm">
+                      Supported files: Markdown, HTML, PDF, DOC, DOCX
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -411,7 +476,10 @@ export function DataTable() {
             <TableFooter>
               <TableRow>
                 <TableCell colSpan={2}>
-                  <div className="flex items-center gap-4 bg-transparent cursor-pointer">
+                  <div
+                    className="flex items-center gap-4 bg-transparent cursor-pointer hover:text-primary transition-colors"
+                    onClick={handleAddFileClick}
+                  >
                     <Plus className="h-4 w-4" />
                     <p>Add File</p>
                   </div>
@@ -422,7 +490,19 @@ export function DataTable() {
         </Table>
       </div>
       <div className="w-full flex justify-end items-center mt-4 gap-2">
-        <Button>Generate EPUB</Button>
+        <Button
+          onClick={handleGenerateEpub}
+          disabled={isGenerating || files.length === 0}
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            "Generate EPUB"
+          )}
+        </Button>
         <ConfigDialog />
       </div>
     </div>
