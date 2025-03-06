@@ -1,10 +1,16 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, GripVertical, X } from "lucide-react";
+import {
+  ArrowUpDown,
+  GripVertical,
+  X,
+  LoaderCircle,
+  FileWarning,
+  CircleCheck,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { File } from "./data";
 
 export function DragHandleCell() {
@@ -20,18 +26,21 @@ function StatusBadge({ status }: { status: File["status"] }) {
   const statusMap: Record<
     File["status"],
     {
-      label: string;
-      variant: "outline" | "secondary" | "destructive" | "default";
+      icon: React.ReactNode;
     }
   > = {
-    "in-progress": { label: "In Progress", variant: "secondary" },
-    done: { label: "Done", variant: "default" },
-    failed: { label: "Failed", variant: "destructive" },
+    "in-progress": {
+      icon: <LoaderCircle className="h-4 w-4 mr-1 animate-spin" />,
+    },
+    done: {
+      icon: <CircleCheck className="h-4 w-4 mr-1" />,
+    },
+    failed: { icon: <FileWarning className="h-4 w-4 mr-1" /> },
   };
 
-  const { label, variant } = statusMap[status];
+  const { icon } = statusMap[status];
 
-  return <Badge variant={variant}>{label}</Badge>;
+  return <>{icon}</>;
 }
 
 export const columns: ColumnDef<File>[] = [
@@ -62,8 +71,7 @@ export const columns: ColumnDef<File>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const File = row.original;
+    cell: () => {
       return (
         <Button variant="ghost">
           <X />
