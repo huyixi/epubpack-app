@@ -21,7 +21,6 @@ export function DragHandleCell() {
   );
 }
 
-// Status badge component
 function StatusBadge({ status }: { status: File["status"] }) {
   const statusMap: Record<
     File["status"],
@@ -29,7 +28,7 @@ function StatusBadge({ status }: { status: File["status"] }) {
       icon: React.ReactNode;
     }
   > = {
-    "in-progress": {
+    processing: {
       icon: <LoaderCircle className="h-4 w-4 mr-1 animate-spin" />,
     },
     done: {

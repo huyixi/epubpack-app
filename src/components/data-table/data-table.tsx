@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import {
   Table,
@@ -7,6 +7,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
+  TableFooter,
   TableRow,
 } from "@/components/ui/table";
 import {
@@ -39,11 +40,13 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Plus } from "lucide-react";
 
 interface DraggableDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onReorder?: (newData: TData[]) => void;
+  onAddFiles?: (files: FileList) => void;
 }
 
 // Draggable row component
@@ -94,12 +97,30 @@ export function DraggableDataTable<TData, TValue>({
   columns,
   data,
   onReorder,
-}: DraggableDataTableProps<TData, TValue>) {
+  onAddFiles,
+}: DraggableDataTableProps<TData, TValue> & {
+  onAddFiles?: (files: FileList) => void;
+}) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeRow, setActiveRow] = useState<Row<TData> | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0 && onAddFiles) {
+      // 调用传入的处理函数
+      onAddFiles(files);
+      // 重置输入值，允许选择相同文件
+      event.target.value = "";
+    }
+  };
   // Configure dnd-kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -170,6 +191,14 @@ export function DraggableDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+        multiple
+        accept=".pdf,.doc,.docx,.txt,.epub"
+      />
       <div className="rounded-md border">
         <DndContext
           sensors={sensors}
@@ -217,6 +246,19 @@ export function DraggableDataTable<TData, TValue>({
                 )}
               </SortableContext>
             </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <div
+                    className="flex items-center gap-4 bg-transparent cursor-pointer hover:text-primary transition-colors"
+                    onClick={handleAddFileClick}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <p>Add File</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
           </Table>
 
           {/* Drag overlay for visual feedback */}
