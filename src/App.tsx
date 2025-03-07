@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Settings } from "lucide-react";
-import { ConfigDialog } from "@/components/ConfigDialog";
+import { ConfigDialog } from "@/components/config-dialog";
 
 const App = () => {
   const [tableData, setTableData] = useState<FileData[]>(initialFiles);
@@ -202,7 +202,7 @@ const App = () => {
 
   return (
     <main className="flex flex-col h-screen w-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">File Manager</h1>
+      <h1 className="text-2xl font-bold mb-4">EPUB Pack</h1>
       <div className="flex-1 overflow-hidden">
         <DraggableDataTable
           columns={columns}
