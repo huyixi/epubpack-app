@@ -10,6 +10,7 @@ import {
   TableFooter,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
 import {
   type ColumnDef,
   flexRender,
@@ -127,10 +128,36 @@ export function DraggableDataTable<TData, TValue>({
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
-      if (files && files.length > 0 && onAddFiles) {
-        onAddFiles(files);
-        event.target.value = "";
+      if (!files || files.length === 0) return;
+
+      const allowedTypes = [".md", ".doc", ".docx", ".txt"];
+
+      const validFiles: File[] = [];
+      const invalidFiles: File[] = [];
+
+      Array.from(files).forEach((file) => {
+        const extension = "." + file.name.split(".").pop()?.toLowerCase();
+        if (allowedTypes.includes(extension)) {
+          validFiles.push(file);
+        } else {
+          invalidFiles.push(file);
+        }
+      });
+
+      if (invalidFiles.length > 0) {
+        toast("Unsupported file types", {
+          description: `${invalidFiles.map((f) => f.name).join(", ")}`,
+        });
       }
+
+      if (validFiles.length > 0 && onAddFiles) {
+        const dataTransfer = new DataTransfer();
+        validFiles.forEach((file) => dataTransfer.items.add(file));
+        onAddFiles(dataTransfer.files);
+        toast("Files has been added to the upload queue");
+      }
+
+      event.target.value = "";
     },
     [onAddFiles],
   );
