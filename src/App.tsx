@@ -10,10 +10,13 @@ import {
 } from "@/components/data-table/data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Settings } from "lucide-react";
+import { ConfigDialog } from "./components/ConfigDialog";
 
 const App = () => {
   const [tableData, setTableData] = useState<FileData[]>(initialFiles);
   const [isGeneration, setIsGenerating] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   const handleReorder = useCallback((newData: FileData[]) => {
     setTableData(newData);
@@ -106,6 +109,16 @@ const App = () => {
     );
   }, [tableData]);
 
+  // 添加打开配置对话框的处理函数
+  const handleOpenConfig = () => {
+    setIsConfigOpen(true);
+  };
+
+  // 添加关闭配置对话框的处理函数
+  const handleCloseConfig = () => {
+    setIsConfigOpen(false);
+  };
+
   // 创建列配置
   const columns = createColumns(handleDelete);
 
@@ -121,16 +134,24 @@ const App = () => {
           onGenerate={handleGenerate}
         />
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex items-center gap-2">
         <Button
           variant="default"
-          className="w-full"
+          className="flex-1"
           disabled={tableData.length === 0}
           onClick={handleGenerate}
         >
           Generate Ebook
         </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setIsConfigOpen(true)}
+        >
+          <Settings />
+        </Button>
       </div>
+      <ConfigDialog open={isConfigOpen} onOpenChange={setIsConfigOpen} />
     </main>
   );
 };

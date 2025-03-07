@@ -14,16 +14,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlignLeft, Grid2X2, Calendar, Settings2, Network } from "lucide-react";
 
-export function ConfigDialog() {
-  const [open, setOpen] = React.useState(false);
-
+export function ConfigDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary">
-          <Settings2 />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-4 gap-0">
         <Tabs defaultValue="metadata" className="flex flex-row ">
           <TabsList className="bg-gray-100 flex h-full w-60 flex-col justify-start items-stretch gap-1 rounded-sm p-2 border-r">
@@ -79,16 +78,8 @@ export function ConfigDialog() {
                 <Input placeholder="Author" className="w-full mb-4" />
                 <Input placeholder="Description" className="w-full" />
               </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button>Save</Button>
-              </div>
             </div>
           </TabsContent>
-
           <TabsContent
             value="image"
             className="flex-1 p-6 m-0 bg-white rounded-sm"
