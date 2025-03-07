@@ -109,16 +109,6 @@ const App = () => {
     );
   }, [tableData]);
 
-  // 添加打开配置对话框的处理函数
-  const handleOpenConfig = () => {
-    setIsConfigOpen(true);
-  };
-
-  // 添加关闭配置对话框的处理函数
-  const handleCloseConfig = () => {
-    setIsConfigOpen(false);
-  };
-
   // 创建列配置
   const columns = createColumns(handleDelete);
 
@@ -136,19 +126,19 @@ const App = () => {
       </div>
       <div className="mt-4 flex items-center gap-2">
         <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setIsConfigOpen(true)}
+        >
+          <Settings />
+        </Button>
+        <Button
           variant="default"
           className="flex-1"
           disabled={tableData.length === 0}
           onClick={handleGenerate}
         >
           Generate Ebook
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsConfigOpen(true)}
-        >
-          <Settings />
         </Button>
       </div>
       <ConfigDialog open={isConfigOpen} onOpenChange={setIsConfigOpen} />
