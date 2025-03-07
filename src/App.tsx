@@ -1,41 +1,26 @@
-import { DraggableDataTable } from "@/components/data-table/data-table";
-import { columns } from "@/components/data-table/columns";
-import { files, File, FileStatus } from "@/components/data-table/data";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 
+import { DraggableDataTable } from "@/components/data-table/data-table";
+import { createColumns } from "@/components/data-table/columns";
+import {
+  initialFiles,
+  FileData,
+  FileStatus,
+} from "@/components/data-table/data";
+
 const App = () => {
-  const [tableData, setTableData] = useState(files);
+  const [tableData, setTableData] = useState<FileData[]>(initialFiles);
 
-  const handleReorder = (newData: File[]) => {
+  const handleReorder = useCallback((newData: FileData[]) => {
     setTableData(newData);
-  };
+  }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     setTableData((currentData) => currentData.filter((file) => file.id !== id));
-  };
+  }, []);
 
-  const handleAddFiles = (fileList: FileList) => {
-    const newFiles: File[] = Array.from(fileList).map((file) => ({
-      id: uuidv4(),
-      name: file.name,
-      status: "processing" as FileStatus,
-    }));
-    setTableData((prevData) => [...prevData, ...newFiles]);
-    // 为每个新文件模拟处理流程
-    newFiles.forEach((newFile) => {
-      // 延迟一小段时间后开始处理
-      setTimeout(
-        () => {
-          simulateFileProcessing(newFile.id);
-        },
-        500 + Math.random() * 1000,
-      ); // 随机延迟，使文件不会同时开始处理
-    });
-  };
-
-  // 模拟文件处理流程
-  const simulateFileProcessing = (fileId: string) => {
+  const simulateFileProcessing = useCallback((fileId: string) => {
     // 更新状态为处理中
     setTableData((prev) =>
       prev.map((file) =>
@@ -46,7 +31,7 @@ const App = () => {
     );
 
     // 模拟处理时间
-    const processingTime = 1000 + Math.random() * 3000; // 2-5秒
+    const processingTime = 1000 + Math.random() * 3000;
 
     setTimeout(() => {
       // 90%概率成功，10%概率失败
@@ -60,13 +45,40 @@ const App = () => {
         ),
       );
     }, processingTime);
-  };
+  }, []);
+
+  const handleAddFiles = useCallback(
+    (fileList: FileList) => {
+      const newFiles: FileData[] = Array.from(fileList).map((file) => ({
+        id: uuidv4(),
+        title: file.name,
+        status: "processing" as FileStatus,
+      }));
+
+      setTableData((prevData) => [...prevData, ...newFiles]);
+
+      // 为每个新文件模拟处理流程
+      newFiles.forEach((newFile) => {
+        // 延迟一小段时间后开始处理
+        setTimeout(
+          () => {
+            simulateFileProcessing(newFile.id);
+          },
+          500 + Math.random() * 1000,
+        );
+      });
+    },
+    [simulateFileProcessing],
+  );
+
+  // 创建列配置
+  const columns = createColumns(handleDelete);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <p className="w-full mb-4">Convert your files to EPUB format</p>
+      <h1 className="text-2xl font-bold mb-6">File Manager</h1>
       <DraggableDataTable
-        columns={columns(handleDelete)}
+        columns={columns}
         data={tableData}
         onReorder={handleReorder}
         onAddFiles={handleAddFiles}

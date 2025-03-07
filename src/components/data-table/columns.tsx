@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type { File } from "./data";
+import type { FileData, FileStatus } from "./data";
+import { FileStatusIcon } from "./status-icon";
 
 export function DragHandleCell() {
   return (
@@ -21,28 +22,9 @@ export function DragHandleCell() {
   );
 }
 
-function StatusBadge({ status }: { status: File["status"] }) {
-  const statusMap: Record<
-    File["status"],
-    {
-      icon: React.ReactNode;
-    }
-  > = {
-    processing: {
-      icon: <LoaderCircle className="h-4 w-4 mr-1 animate-spin" />,
-    },
-    done: {
-      icon: <CircleCheck className="h-4 w-4 mr-1" />,
-    },
-    failed: { icon: <FileWarning className="h-4 w-4 mr-1" /> },
-  };
-
-  const { icon } = statusMap[status];
-
-  return <>{icon}</>;
-}
-
-export const columns = (onDelete: (id: string) => void): ColumnDef<File>[] => [
+export const createColumns = (
+  onDelete: (id: string) => void,
+): ColumnDef<FileData>[] => [
   {
     id: "drag-handle",
     cell: () => <DragHandleCell />,
@@ -51,38 +33,35 @@ export const columns = (onDelete: (id: string) => void): ColumnDef<File>[] => [
   },
   {
     accessorKey: "title",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Title
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Title
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+    cell: ({ row }) => (
+      <FileStatusIcon status={row.getValue<FileStatus>("status")} />
+    ),
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const file = row.original;
-      return (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="hover:text-destructive"
-          onClick={() => onDelete(file.id)}
-        >
-          <X className="w-4 h-4" />
-          <span className="sr-only">Delete file</span>
-        </Button>
-      );
-    },
+    cell: ({ row }) => (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="hover:text-destructive"
+        onClick={() => onDelete(row.original.id)}
+      >
+        <X className="w-4 h-4" />
+        <span className="sr-only">Delete file</span>
+      </Button>
+    ),
   },
 ];

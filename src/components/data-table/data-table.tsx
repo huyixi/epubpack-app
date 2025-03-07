@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 
 import {
   Table,
@@ -51,6 +51,8 @@ interface DraggableDataTableProps<TData, TValue> {
 
 // Draggable row component
 function DraggableTableRow<TData>({ row }: { row: Row<TData> }) {
+  const rowId = (row.original as any).id;
+
   const {
     attributes,
     listeners,
@@ -59,7 +61,7 @@ function DraggableTableRow<TData>({ row }: { row: Row<TData> }) {
     transition,
     isDragging,
   } = useSortable({
-    id: (row.original as any).id,
+    id: rowId,
   });
 
   const style = {
@@ -75,7 +77,7 @@ function DraggableTableRow<TData>({ row }: { row: Row<TData> }) {
       ref={setNodeRef}
       style={style}
       data-state={row.getIsSelected() && "selected"}
-      className={`${isDragging ? "bg-muted" : ""} border-b transition-colors hover:bg-muted/50`}
+      className={`${isDragging ? "bg-muted" : ""} border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted`}
       {...attributes}
     >
       {row.getVisibleCells().map((cell) => (
@@ -98,9 +100,7 @@ export function DraggableDataTable<TData, TValue>({
   data,
   onReorder,
   onAddFiles,
-}: DraggableDataTableProps<TData, TValue> & {
-  onAddFiles?: (files: FileList) => void;
-}) {
+}: DraggableDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -108,19 +108,21 @@ export function DraggableDataTable<TData, TValue>({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAddFileClick = () => {
+  const handleAddFileClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0 && onAddFiles) {
-      // 调用传入的处理函数
-      onAddFiles(files);
-      // 重置输入值，允许选择相同文件
-      event.target.value = "";
-    }
-  };
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files && files.length > 0 && onAddFiles) {
+        onAddFiles(files);
+        event.target.value = "";
+      }
+    },
+    [onAddFiles],
+  );
+
   // Configure dnd-kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -132,43 +134,6 @@ export function DraggableDataTable<TData, TValue>({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-
-  // Handle drag start event
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id as string);
-
-    // Find the active row by ID directly from table rows
-    const row = table
-      .getRowModel()
-      .rows.find((r) => (r.original as any).id === active.id);
-
-    if (row) {
-      setActiveRow(row);
-    }
-  };
-
-  // Handle drag end event
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      // Find the indices of the items
-      const oldIndex = data.findIndex((item: any) => item.id === active.id);
-      const newIndex = data.findIndex((item: any) => item.id === over.id);
-
-      // Reorder the array
-      const reorderedData = arrayMove([...data], oldIndex, newIndex);
-
-      // Notify parent component about the change if callback exists
-      if (onReorder) {
-        onReorder(reorderedData);
-      }
-    }
-
-    setActiveId(null);
-    setActiveRow(null);
-  };
 
   // Initialize table
   const table = useReactTable({
@@ -184,7 +149,49 @@ export function DraggableDataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getRowId: (row: any) => row.id,
   });
+
+  // Handle drag start event
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      setActiveId(active.id as string);
+
+      const row = table
+        .getRowModel()
+        .rows.find((r) => (r.original as any).id === active.id);
+
+      if (row) {
+        setActiveRow(row);
+      }
+    },
+    [table],
+  );
+
+  // Handle drag end event
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      if (over && active.id !== over.id) {
+        const oldIndex = data.findIndex((item: any) => item.id === active.id);
+        const newIndex = data.findIndex((item: any) => item.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const reorderedData = arrayMove([...data], oldIndex, newIndex);
+
+          if (onReorder) {
+            onReorder(reorderedData);
+          }
+        }
+      }
+
+      setActiveId(null);
+      setActiveRow(null);
+    },
+    [data, onReorder],
+  );
 
   // Get row IDs for SortableContext
   const rowIds = data.map((item: any) => item.id);
@@ -197,7 +204,7 @@ export function DraggableDataTable<TData, TValue>({
         onChange={handleFileChange}
         style={{ display: "none" }}
         multiple
-        accept=".pdf,.doc,.docx,.txt,.epub"
+        accept=".pdf,.doc,.docx,.txt,.md"
       />
       <div className="rounded-md border">
         <DndContext
@@ -240,7 +247,7 @@ export function DraggableDataTable<TData, TValue>({
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No results.
+                      No files added yet.
                     </TableCell>
                   </TableRow>
                 )}
@@ -248,7 +255,7 @@ export function DraggableDataTable<TData, TValue>({
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={columns.length}>
                   <div
                     className="flex items-center gap-4 bg-transparent cursor-pointer hover:text-primary transition-colors"
                     onClick={handleAddFileClick}

@@ -1,10 +1,11 @@
-export type File = {
+export type FileStatus = "processing" | "done" | "failed";
+export type FileData = {
   id: string;
   title: string;
-  status: "processing" | "done" | "failed";
+  status: FileStatus;
 };
 
-export const files: File[] = [
+export const initialFiles: FileData[] = [
   {
     id: "TASK-8782",
     title: "example-processing",
