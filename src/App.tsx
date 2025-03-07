@@ -75,14 +75,16 @@ const App = () => {
   const columns = createColumns(handleDelete);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-bold mb-6">File Manager</h1>
-      <DraggableDataTable
-        columns={columns}
-        data={tableData}
-        onReorder={handleReorder}
-        onAddFiles={handleAddFiles}
-      />
+    <main className="flex flex-col h-screen w-screen p-4">
+      <h1 className="text-2xl font-bold mb-4">File Manager</h1>
+      <div className="flex-1 overflow-hidden">
+        <DraggableDataTable
+          columns={columns}
+          data={tableData}
+          onReorder={handleReorder}
+          onAddFiles={handleAddFiles}
+        />
+      </div>
     </main>
   );
 };
