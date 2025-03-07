@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import { DraggableDataTable } from "@/components/data-table/data-table";
@@ -11,12 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Settings } from "lucide-react";
-import { ConfigDialog } from "./components/ConfigDialog";
+import { ConfigDialog } from "@/components/ConfigDialog";
 
 const App = () => {
   const [tableData, setTableData] = useState<FileData[]>(initialFiles);
-  const [isGeneration, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  const filesRef = useRef<Map<string, File>>(new Map());
 
   const handleReorder = useCallback((newData: FileData[]) => {
     setTableData(newData);
@@ -24,61 +26,150 @@ const App = () => {
 
   const handleDelete = useCallback((id: string) => {
     setTableData((currentData) => currentData.filter((file) => file.id !== id));
+    filesRef.current.delete(id);
   }, []);
 
-  const simulateFileProcessing = useCallback((fileId: string) => {
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          resolve(event.target.result as string);
+        } else {
+          reject(new Error("Failed to read file content"));
+        }
+      };
+
+      reader.onerror = () => {
+        reject(new Error(`Error reading file: ${file.name}`));
+      };
+
+      reader.readAsText(file);
+    });
+  };
+
+  const processFile = useCallback(async (fileId: string, file: File) => {
     // 更新状态为处理中
     setTableData((prev) =>
-      prev.map((file) =>
-        file.id === fileId
-          ? { ...file, status: "processing" as FileStatus }
-          : file,
+      prev.map((item) =>
+        item.id === fileId
+          ? { ...item, status: "processing" as FileStatus }
+          : item,
       ),
     );
 
-    // 模拟处理时间
-    const processingTime = 1000 + Math.random() * 3000;
+    try {
+      // 实际读取文件内容
+      const content = await readFileContent(file);
 
-    setTimeout(() => {
-      // 90%概率成功，10%概率失败
-      const isSuccess = Math.random() > 0.1;
-
+      // 读取成功，更新状态和内容
       setTableData((prev) =>
-        prev.map((file) =>
-          file.id === fileId
-            ? { ...file, status: isSuccess ? "done" : ("failed" as FileStatus) }
-            : file,
+        prev.map((item) =>
+          item.id === fileId
+            ? {
+                ...item,
+                status: "done" as FileStatus,
+                content: content,
+              }
+            : item,
         ),
       );
-    }, processingTime);
+
+      return true;
+    } catch (error) {
+      console.error("Error processing file:", error);
+
+      // 读取失败，更新状态
+      setTableData((prev) =>
+        prev.map((item) =>
+          item.id === fileId
+            ? { ...item, status: "failed" as FileStatus }
+            : item,
+        ),
+      );
+
+      toast.error(`Failed to read file: ${file.name}`);
+      return false;
+    }
   }, []);
 
   const handleAddFiles = useCallback(
     (fileList: FileList) => {
-      const newFiles: FileData[] = Array.from(fileList).map((file) => ({
-        id: uuidv4(),
-        title: file.name,
-        status: "processing" as FileStatus,
-      }));
+      const newFiles: FileData[] = Array.from(fileList).map((file) => {
+        const id = uuidv4();
+        // 存储文件引用
+        filesRef.current.set(id, file);
+
+        return {
+          id,
+          title: file.name,
+          status: "processing" as FileStatus,
+          file,
+        };
+      });
 
       setTableData((prevData) => [...prevData, ...newFiles]);
 
       // 为每个新文件模拟处理流程
-      newFiles.forEach((newFile) => {
-        // 延迟一小段时间后开始处理
-        setTimeout(
-          () => {
-            simulateFileProcessing(newFile.id);
-          },
-          500 + Math.random() * 1000,
-        );
+      newFiles.forEach(async (newFile) => {
+        const file = filesRef.current.get(newFile.id);
+        if (file) {
+          await processFile(newFile.id, file);
+        }
       });
     },
-    [simulateFileProcessing],
+    [processFile],
   );
 
-  const handleGenerate = useCallback(() => {
-    // 检查是否有文件
+  const generateTextFile = (files: FileData[]): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // 按表格中的顺序合并所有文件内容
+        let combinedContent = "";
+
+        files.forEach((file, index) => {
+          // 添加文件标题作为章节标题
+          combinedContent += `\n\n--- ${file.title} ---\n\n`;
+
+          // 添加文件内容
+          if (file.content) {
+            combinedContent += file.content;
+          } else {
+            combinedContent += "[No content available]";
+          }
+
+          // 在文件之间添加分隔符（最后一个文件除外）
+          if (index < files.length - 1) {
+            combinedContent += "\n\n";
+          }
+        });
+
+        // 从合并的内容创建一个blob
+        const blob = new Blob([combinedContent], { type: "text/plain" });
+
+        // 创建下载链接
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "combined_output.txt";
+
+        // 将链接添加到body，点击它，然后移除
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // 释放URL对象
+        URL.revokeObjectURL(url);
+
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const handleGenerate = useCallback(async () => {
     if (tableData.length === 0) {
       toast.error("No files to generate ebook");
       return;
@@ -89,24 +180,24 @@ const App = () => {
       description: "Your ebook is being generated...",
     });
 
-    // 模拟生成过程
     setIsGenerating(true);
 
-    // 模拟处理时间 (2-4秒)
-    setTimeout(
-      () => {
-        setIsGenerating(false);
+    try {
+      // 调用生成函数
+      await generateTextFile(tableData);
 
-        // 显示成功消息
-        toast.success("Success", {
-          description: "Your ebook has been generated successfully!",
-        });
+      setIsGenerating(false);
 
-        // 如果需要，这里可以添加实际调用后端生成电子书的逻辑
-        // window.ipcRenderer.invoke('generate-ebook', tableData);
-      },
-      2000 + Math.random() * 2000,
-    );
+      toast.success("Success", {
+        description: "Your text file has been generated and downloaded!",
+      });
+    } catch (error) {
+      console.error("Error generating output:", error);
+      setIsGenerating(false);
+      toast.error("Failed to generate text file", {
+        description: "An error occurred while combining file contents.",
+      });
+    }
   }, [tableData]);
 
   // 创建列配置
@@ -135,10 +226,10 @@ const App = () => {
         <Button
           variant="default"
           className="flex-1"
-          disabled={tableData.length === 0}
+          disabled={tableData.length === 0 || isGenerating}
           onClick={handleGenerate}
         >
-          Generate Ebook
+          {isGenerating ? "Generating..." : "Generate Ebook"}
         </Button>
       </div>
       <ConfigDialog open={isConfigOpen} onOpenChange={setIsConfigOpen} />
