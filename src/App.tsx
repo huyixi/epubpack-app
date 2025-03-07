@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { DraggableDataTable } from "@/components/data-table/data-table";
+import { DataTable } from "@/components/data-table";
 import { createColumns } from "@/components/data-table/columns";
 import {
   initialFiles,
@@ -204,7 +204,7 @@ const App = () => {
     <main className="flex flex-col h-screen w-screen p-4">
       <h1 className="text-2xl font-bold mb-4">EPUB Pack</h1>
       <div className="flex-1 overflow-hidden">
-        <DraggableDataTable
+        <DataTable
           columns={columns}
           data={tableData}
           onReorder={handleReorder}

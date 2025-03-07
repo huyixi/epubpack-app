@@ -109,7 +109,7 @@ function DraggableTableRow<TData>({ row }: { row: Row<TData> }) {
   );
 }
 
-export function DraggableDataTable<TData, TValue>({
+export function DataTable<TData, TValue>({
   columns,
   data,
   onReorder,
