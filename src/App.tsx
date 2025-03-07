@@ -175,7 +175,6 @@ const App = () => {
       return;
     }
 
-    // 告知用户生成已开始
     toast("Generating ebook", {
       description: "Your ebook is being generated...",
     });
@@ -183,7 +182,6 @@ const App = () => {
     setIsGenerating(true);
 
     try {
-      // 调用生成函数
       await generateTextFile(tableData);
 
       setIsGenerating(false);
@@ -200,7 +198,6 @@ const App = () => {
     }
   }, [tableData]);
 
-  // 创建列配置
   const columns = createColumns(handleDelete);
 
   return (
