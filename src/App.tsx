@@ -8,9 +8,11 @@ import {
   FileData,
   FileStatus,
 } from "@/components/data-table/data";
+import { toast } from "sonner";
 
 const App = () => {
   const [tableData, setTableData] = useState<FileData[]>(initialFiles);
+  const [isGeneration, setIsGenerating] = useState(false);
 
   const handleReorder = useCallback((newData: FileData[]) => {
     setTableData(newData);
@@ -71,6 +73,38 @@ const App = () => {
     [simulateFileProcessing],
   );
 
+  const handleGenerate = useCallback(() => {
+    // 检查是否有文件
+    if (tableData.length === 0) {
+      toast.error("No files to generate ebook");
+      return;
+    }
+
+    // 告知用户生成已开始
+    toast("Generating ebook", {
+      description: "Your ebook is being generated...",
+    });
+
+    // 模拟生成过程
+    setIsGenerating(true);
+
+    // 模拟处理时间 (2-4秒)
+    setTimeout(
+      () => {
+        setIsGenerating(false);
+
+        // 显示成功消息
+        toast.success("Success", {
+          description: "Your ebook has been generated successfully!",
+        });
+
+        // 如果需要，这里可以添加实际调用后端生成电子书的逻辑
+        // window.ipcRenderer.invoke('generate-ebook', tableData);
+      },
+      2000 + Math.random() * 2000,
+    );
+  }, [tableData]);
+
   // 创建列配置
   const columns = createColumns(handleDelete);
 
@@ -83,6 +117,7 @@ const App = () => {
           data={tableData}
           onReorder={handleReorder}
           onAddFiles={handleAddFiles}
+          onGenerate={handleGenerate}
         />
       </div>
     </main>

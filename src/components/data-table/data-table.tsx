@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useCallback } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -48,6 +49,7 @@ interface DraggableDataTableProps<TData, TValue> {
   data: TData[];
   onReorder?: (newData: TData[]) => void;
   onAddFiles?: (files: FileList) => void;
+  onGenerate?: () => void;
 }
 
 // Draggable row component
@@ -113,6 +115,7 @@ export function DraggableDataTable<TData, TValue>({
   data,
   onReorder,
   onAddFiles,
+  onGenerate,
 }: DraggableDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -306,6 +309,20 @@ export function DraggableDataTable<TData, TValue>({
                     >
                       <Plus className="h-4 w-4" />
                       <p>Add File</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell colSpan={columns.length}>
+                    <div className="flex justify-center w-full">
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        disabled={data.length === 0}
+                        onClick={onGenerate}
+                      >
+                        Generate Ebook
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

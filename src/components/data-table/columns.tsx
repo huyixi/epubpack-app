@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, GripVertical, Wind, X } from "lucide-react";
+import { ArrowUpDown, GripVertical, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { FileData, FileStatus } from "./data";
