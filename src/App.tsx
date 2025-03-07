@@ -8,6 +8,7 @@ import {
   FileData,
   FileStatus,
 } from "@/components/data-table/data";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const App = () => {
@@ -119,6 +120,16 @@ const App = () => {
           onAddFiles={handleAddFiles}
           onGenerate={handleGenerate}
         />
+      </div>
+      <div className="mt-4">
+        <Button
+          variant="default"
+          className="w-full"
+          disabled={tableData.length === 0}
+          onClick={handleGenerate}
+        >
+          Generate Ebook
+        </Button>
       </div>
     </main>
   );

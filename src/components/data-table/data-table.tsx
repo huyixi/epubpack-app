@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useCallback } from "react";
 
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -115,7 +114,6 @@ export function DraggableDataTable<TData, TValue>({
   data,
   onReorder,
   onAddFiles,
-  onGenerate,
 }: DraggableDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -312,24 +310,8 @@ export function DraggableDataTable<TData, TValue>({
                     </div>
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell colSpan={columns.length}>
-                    <div className="flex justify-center w-full">
-                      <Button
-                        variant="default"
-                        className="w-full"
-                        disabled={data.length === 0}
-                        onClick={onGenerate}
-                      >
-                        Generate Ebook
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
               </TableFooter>
             </Table>
-
-            {/* ... 拖拽覆盖层保持不变 */}
           </DndContext>
         </div>
       </div>
