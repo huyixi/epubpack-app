@@ -32,50 +32,34 @@ const App = () => {
     filesRef.current.delete(id);
   }, []);
 
-  const processFile = useCallback(async (fileId: string, file: File) => {
-    // 更新状态为处理中
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.id === fileId
-          ? { ...item, status: "processing" as FileStatus }
-          : item,
-      ),
-    );
-
-    try {
-      // 实际读取文件内容
-      const content = await readFileContent(file);
-
-      // 读取成功，更新状态和内容
+  const updateFileStatus = useCallback(
+    (fileId: string, status: FileStatus, additionalProps = {}) => {
       setTableData((prev) =>
         prev.map((item) =>
-          item.id === fileId
-            ? {
-                ...item,
-                status: "done" as FileStatus,
-                content: content,
-              }
-            : item,
+          item.id === fileId ? { ...item, status, ...additionalProps } : item,
         ),
       );
+    },
+    [],
+  );
 
-      return true;
-    } catch (error) {
-      console.error("Error processing file:", error);
+  const processFile = useCallback(
+    async (fileId: string, file: File) => {
+      updateFileStatus(fileId, "processing");
 
-      // 读取失败，更新状态
-      setTableData((prev) =>
-        prev.map((item) =>
-          item.id === fileId
-            ? { ...item, status: "failed" as FileStatus }
-            : item,
-        ),
-      );
-
-      toast.error(`Failed to read file: ${file.name}`);
-      return false;
-    }
-  }, []);
+      try {
+        const content = await readFileContent(file);
+        updateFileStatus(fileId, "done", { content });
+        return true;
+      } catch (error) {
+        console.error("Error processing file:", error);
+        updateFileStatus(fileId, "failed");
+        toast.error(`Failed to read file: ${file.name}`);
+        return false;
+      }
+    },
+    [updateFileStatus],
+  );
 
   const handleAddFiles = useCallback(
     (fileList: FileList) => {
@@ -94,11 +78,13 @@ const App = () => {
 
       setTableData((prevData) => [...prevData, ...newFiles]);
 
-      newFiles.forEach(async (newFile) => {
-        const file = filesRef.current.get(newFile.id);
-        if (file) {
-          await processFile(newFile.id, file);
-        }
+      Promise.all(
+        newFiles.map((newFile) => {
+          const file = filesRef.current.get(newFile.id);
+          return file ? processFile(newFile.id, file) : Promise.resolve(false);
+        }),
+      ).catch((error) => {
+        console.error("Error processing files batch:", error);
       });
     },
     [processFile],
