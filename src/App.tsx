@@ -10,7 +10,7 @@ import {
 } from "@/components/data-table/data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Settings, CheckCircleIcon, ExclamationCircleIcon } from "lucide-react";
+import { Settings, CheckCircleIcon, CircleAlert } from "lucide-react";
 import { ConfigDialog } from "@/components/config-dialog";
 
 import { readFileContent } from "@/utils/fileUtils";
@@ -114,7 +114,7 @@ const App = () => {
       console.error("Error generating output:", error);
       setIsGenerating(false);
       toast.error("Failed to generate EPUB file", {
-        icon: <ExclamationCircleIcon className="h-5 w-5 text-red-500" />,
+        icon: <CircleAlert className="h-5 w-5 text-red-500" />,
         description: "An error occurred while combining file contents.",
       });
     }
