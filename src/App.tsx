@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { Settings } from "lucide-react";
 import { ConfigDialog } from "@/components/config-dialog";
 
+import { readFileContent } from "@/utils/fileUtils";
+import { generateTextFile } from "@/utils/ebookUtils";
+
 const App = () => {
   const [tableData, setTableData] = useState<FileData[]>(initialFiles);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -28,26 +31,6 @@ const App = () => {
     setTableData((currentData) => currentData.filter((file) => file.id !== id));
     filesRef.current.delete(id);
   }, []);
-
-  const readFileContent = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          resolve(event.target.result as string);
-        } else {
-          reject(new Error("Failed to read file content"));
-        }
-      };
-
-      reader.onerror = () => {
-        reject(new Error(`Error reading file: ${file.name}`));
-      };
-
-      reader.readAsText(file);
-    });
-  };
 
   const processFile = useCallback(async (fileId: string, file: File) => {
     // 更新状态为处理中
@@ -111,7 +94,6 @@ const App = () => {
 
       setTableData((prevData) => [...prevData, ...newFiles]);
 
-      // 为每个新文件模拟处理流程
       newFiles.forEach(async (newFile) => {
         const file = filesRef.current.get(newFile.id);
         if (file) {
@@ -121,53 +103,6 @@ const App = () => {
     },
     [processFile],
   );
-
-  const generateTextFile = (files: FileData[]): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      try {
-        // 按表格中的顺序合并所有文件内容
-        let combinedContent = "";
-
-        files.forEach((file, index) => {
-          // 添加文件标题作为章节标题
-          combinedContent += `\n\n--- ${file.title} ---\n\n`;
-
-          // 添加文件内容
-          if (file.content) {
-            combinedContent += file.content;
-          } else {
-            combinedContent += "[No content available]";
-          }
-
-          // 在文件之间添加分隔符（最后一个文件除外）
-          if (index < files.length - 1) {
-            combinedContent += "\n\n";
-          }
-        });
-
-        // 从合并的内容创建一个blob
-        const blob = new Blob([combinedContent], { type: "text/plain" });
-
-        // 创建下载链接
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "combined_output.txt";
-
-        // 将链接添加到body，点击它，然后移除
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // 释放URL对象
-        URL.revokeObjectURL(url);
-
-        resolve();
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
 
   const handleGenerate = useCallback(async () => {
     if (tableData.length === 0) {
