@@ -10,7 +10,7 @@ import {
 } from "@/components/data-table/data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Settings } from "lucide-react";
+import { Settings, CheckCircleIcon, ExclamationCircleIcon } from "lucide-react";
 import { ConfigDialog } from "@/components/config-dialog";
 
 import { readFileContent } from "@/utils/fileUtils";
@@ -65,7 +65,6 @@ const App = () => {
     (fileList: FileList) => {
       const newFiles: FileData[] = Array.from(fileList).map((file) => {
         const id = uuidv4();
-        // 存储文件引用
         filesRef.current.set(id, file);
 
         return {
@@ -107,13 +106,15 @@ const App = () => {
 
       setIsGenerating(false);
 
-      toast.success("Success", {
-        description: "Your text file has been generated and downloaded!",
+      toast.success("File exported successfully", {
+        icon: <CheckCircleIcon className="h-5 w-5 text-emerald-500" />,
+        duration: 10000,
       });
     } catch (error) {
       console.error("Error generating output:", error);
       setIsGenerating(false);
-      toast.error("Failed to generate text file", {
+      toast.error("Failed to generate EPUB file", {
+        icon: <ExclamationCircleIcon className="h-5 w-5 text-red-500" />,
         description: "An error occurred while combining file contents.",
       });
     }
