@@ -14,7 +14,7 @@ import { Settings } from "lucide-react";
 import { ConfigDialog } from "@/components/config-dialog";
 
 import { readFileContent } from "@/utils/fileUtils";
-import { generateTextFile } from "@/utils/ebookUtils";
+import { generateEpub } from "@/utils/ebookUtils";
 
 const App = () => {
   const [tableData, setTableData] = useState<FileData[]>(initialFiles);
@@ -103,7 +103,7 @@ const App = () => {
     setIsGenerating(true);
 
     try {
-      await generateTextFile(tableData);
+      await generateEpub(tableData);
 
       setIsGenerating(false);
 
