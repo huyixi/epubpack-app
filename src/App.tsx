@@ -124,7 +124,7 @@ const App = () => {
 
   return (
     <main className="flex flex-col h-screen w-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">EPUB Pack</h1>
+      <h1 className="text-2xl font-bold mb-4">EpubPack</h1>
       <div className="flex-1 overflow-hidden">
         <DataTable
           columns={columns}
