@@ -187,7 +187,6 @@ export function DataTable<TData, TValue>({
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getRowId: (row: any) => row.id,
   });
@@ -246,9 +245,8 @@ export function DataTable<TData, TValue>({
         multiple
         accept=".pdf,.doc,.docx,.txt,.md"
       />
-      {/* 使用 flex 和响应式尺寸 */}
-      <div className="rounded-md border flex-1 w-full overflow-hidden">
-        <div className="h-full w-full overflow-auto">
+      <div className="rounded-md border w-full flex flex-col h-[calc(100vh-150px)] max-h-[800px]">
+        <div className="flex-1 overflow-auto">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
